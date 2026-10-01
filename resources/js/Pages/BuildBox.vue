@@ -1,0 +1,17 @@
+<script setup>
+import {computed,reactive,ref} from 'vue';import {router} from '@inertiajs/vue3';import SiteHeader from '../Components/SiteHeader.vue';
+const props=defineProps({products:Array,boxes:Array});
+const selectedBox=ref(props.boxes[0]?.id);
+const box=computed(()=>props.boxes.find(b=>b.id===selectedBox.value));
+const counts=reactive(Object.fromEntries(props.products.map(p=>[p.id,0])));
+const standard=computed(()=>{const n=box.value?.size||4; const out={}; props.products.forEach(p=>out[p.id]=n===4?(p.slug==='classic-chocolate-chip'||p.slug==='double-chocolate'||p.slug==='lotus'||p.slug==='red-velvet'?1:0):n===6?1:2); return out;});
+const extraRate=p=>['kinder','pistachio'].includes(p.slug)?50:['lotus','red-velvet'].includes(p.slug)?30:p.slug==='double-chocolate'?20:0;
+const total=computed(()=>Object.values(counts).reduce((a,b)=>a+Number(b),0));
+const extras=computed(()=>props.products.reduce((sum,p)=>sum+Math.max(0,(counts[p.id]||0)-(standard.value[p.id]||0))*extraRate(p),0));
+const price=computed(()=>Number(box.value?.price||0)+extras.value);
+function selectBox(id){selectedBox.value=id;props.products.forEach(p=>counts[p.id]=standard.value[p.id]||0)}
+function add(id){if(total.value<box.value.size)counts[id]++} function sub(id){counts[id]=Math.max(0,counts[id]-1)}
+function submit(){router.post('/cart/box',{box_id:box.value.id,selection:counts,extra_total:extras.value,unit_price:price.value})}
+props.products.forEach(p=>counts[p.id]=standard.value[p.id]||0);
+</script>
+<template><SiteHeader/><main class="mx-auto max-w-5xl px-5 py-14"><p class="eyebrow">Build your box</p><h1 class="serif mt-2 text-5xl font-bold">Make it yours.</h1><p class="mt-4 max-w-2xl opacity-65">Your standard box starts with the flavors shown below. Change the mix however you like; upgrades are added automatically.</p><div class="mt-8 flex flex-wrap gap-3"><button v-for="b in boxes" :key="b.id" @click="selectBox(b.id)" :class="['rounded-full border px-5 py-3 text-sm font-bold',selectedBox===b.id?'border-brown bg-brown text-cream':'border-brown/20']">{{b.name}} · {{b.price}} EGP</button></div><div class="mt-10 grid gap-4 sm:grid-cols-2"><article v-for="p in products" :key="p.id" class="flex items-center justify-between rounded-3xl border border-brown/10 bg-white/40 p-4"><div><h2 class="serif text-xl font-bold">{{p.name}}</h2><p class="mt-1 text-xs opacity-55">{{p.description}}</p><span v-if="extraRate(p)" class="mt-2 inline-block text-[11px] font-bold uppercase tracking-[.12em] text-caramel">+{{extraRate(p)}} EGP / extra cookie</span></div><div class="flex items-center gap-3"><button @click="sub(p.id)" class="grid h-9 w-9 place-items-center rounded-full border">−</button><b>{{counts[p.id]}}</b><button @click="add(p.id)" class="grid h-9 w-9 place-items-center rounded-full bg-brown text-cream">+</button></div></article></div><div class="sticky bottom-4 mt-10 flex flex-col gap-3 rounded-3xl bg-white p-5 shadow-xl ring-1 ring-brown/10 sm:flex-row sm:items-center sm:justify-between"><div><span class="font-bold">{{total}} / {{box?.size}} cookies</span><span class="ml-3 text-sm opacity-55">{{price}} EGP</span><p v-if="extras" class="mt-1 text-xs opacity-55">Includes {{extras}} EGP flavor upgrades</p></div><button :disabled="total!==box?.size" @click="submit" class="rounded-full bg-brown px-6 py-3 font-bold text-cream disabled:cursor-not-allowed disabled:opacity-30">Add to Cart</button></div></main></template>

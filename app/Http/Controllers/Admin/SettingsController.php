@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller; use App\Models\Setting; use Illuminate\Http\Request; use Inertia\Inertia;
+class SettingsController extends Controller { public function edit(){return Inertia::render('Admin/Settings',['settings'=>['instagram'=>Setting::getValue('instagram',''),'tiktok'=>Setting::getValue('tiktok',''),'whatsapp'=>Setting::getValue('whatsapp',''),'free_delivery_threshold'=>Setting::getValue('free_delivery_threshold','500'),'brand_tagline'=>Setting::getValue('brand_tagline','Sweet things bring people together.')]]);} public function update(Request $r){$d=$r->validate(['instagram'=>'nullable|max:255','tiktok'=>'nullable|max:255','whatsapp'=>'nullable|max:50','free_delivery_threshold'=>'required|numeric|min:0','brand_tagline'=>'required|max:255']);foreach($d as $k=>$v)Setting::putValue($k,$v);return back();} }

@@ -1,0 +1,4 @@
+<?php
+namespace App\Http\Controllers\Admin;
+use App\Http\Controllers\Controller; use App\Models\Box; use Illuminate\Http\Request; use Inertia\Inertia;
+class BoxController extends Controller { public function index(){return Inertia::render('Admin/Boxes',['boxes'=>Box::orderBy('size')->get()]);} public function store(Request $r){$d=$r->validate(['name'=>'required|max:80','size'=>'required|integer|min:1|max:100','price'=>'required|numeric|min:0','is_active'=>'boolean']);Box::create($d);return back();} public function update(Request $r,Box $box){$d=$r->validate(['name'=>'required|max:80','size'=>'required|integer|min:1|max:100','price'=>'required|numeric|min:0','is_active'=>'boolean']);$box->update($d);return back();} public function destroy(Box $box){$box->update(['is_active'=>false]);return back();} }

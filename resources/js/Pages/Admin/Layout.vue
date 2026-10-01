@@ -1,0 +1,1 @@
+<template><main class="mx-auto grid max-w-7xl gap-6 px-5 py-8 lg:grid-cols-[220px_1fr]"><AdminNav/><section><slot/></section></main></template><script setup>import AdminNav from '../../Components/AdminNav.vue';</script>
